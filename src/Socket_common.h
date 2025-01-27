@@ -11,6 +11,6 @@ class Socket_common {
 
 };
 
-
+void CommonFunction();
 
 #endif //SOCKET_COMMON_H

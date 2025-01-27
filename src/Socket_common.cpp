@@ -1,5 +1,6 @@
-//
-// Created by super on 26/01/2025.
-//
-
+// src/Socket_common.cpp
 #include "Socket_common.h"
+
+void CommonFunction() {
+    // Implémentation
+}
