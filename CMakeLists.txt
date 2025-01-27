@@ -23,5 +23,3 @@ target_link_libraries(Server PRIVATE Socket)
 
 add_executable(Client src/client.cpp)
 target_link_libraries(Client PRIVATE Socket)
-
-add_executable(ReseauJV main.cpp)
