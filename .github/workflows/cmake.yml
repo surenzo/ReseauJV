@@ -21,12 +21,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Configure and build the project
+      # 2. Configure CMake for Windows with Ninja, others with default
       - name: Configure CMake
-        run: |
-          cmake -B build -S . \
-          -DCMAKE_BUILD_TYPE=Release \
-          ${{ matrix.os == 'macos-latest' && '-DCMAKE_OSX_ARCHITECTURES=arm64' || '' }}
+        run: cmake -B build -S . -G Ninja -DCMAKE_BUILD_TYPE=Release
 
       - name: Build project
         run: cmake --build build --config Release
