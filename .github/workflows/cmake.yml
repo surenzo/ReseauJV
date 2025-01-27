@@ -28,10 +28,11 @@ jobs:
       # 3. Build project
       - name: Build project
         run: cmake --build build --config Release
-      
+
 
       # 4. List the build directory (for debugging)
       - name: List build directory (debug)
+        if: ${{ matrix.os != macos-latest }}
         run: dir build
 
       # 5. Upload build artifacts (adjusting the paths)
