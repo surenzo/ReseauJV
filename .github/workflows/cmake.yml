@@ -23,8 +23,7 @@ jobs:
 
       # 2. Configure CMake for Windows with Ninja, others with default
       - name: Configure CMake
-        run: |
-          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release ${{ matrix.os == 'windows-latest' && '-G Ninja' || '' }}
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
       
 
       - name: Build project
