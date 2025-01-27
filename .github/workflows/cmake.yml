@@ -25,15 +25,20 @@ jobs:
       - name: Configure CMake
         run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
       
-
+      # 3. Build project
       - name: Build project
         run: cmake --build build --config Release
+      
 
-      # 3. Upload executables as artifacts
+      # 4. List the build directory (for debugging)
+      - name: List build directory (debug)
+        run: dir build
+
+      # 5. Upload build artifacts (adjusting the paths)
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
           name: Build-${{ matrix.os }}
           path: |
-            build/Server
-            build/Client
+            build/Release/Server
+            build/Release/Client
