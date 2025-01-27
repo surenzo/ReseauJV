@@ -32,7 +32,7 @@ jobs:
 
       # 4. List the build directory (for debugging)
       - name: List build directory (debug)
-        if: ${{ matrix.os != macos-latest }}
+        if: ${{ runner.os != 'macOS' }}
         run: dir build
 
       # 5. Upload build artifacts (adjusting the paths)
