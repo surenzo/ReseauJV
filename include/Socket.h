@@ -1,24 +1,35 @@
-#pragma once
+#ifndef SOCKET_H
+#define SOCKET_H
+
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 
 #include <string>
 
+
 class Socket {
 private:
-    int sendSocket;              
-    int listenSocket;             
-    struct sockaddr serverAddr;   
-    socklen_t serverAddrLen;      
-
-    struct sockaddr clientAddr;   
-    socklen_t clientAddrLen;     
-
-    static constexpr int DEFAULT_BUFLEN = 512; 
+    int SendSocket;
+    int ListenSocket;
+    struct sockaddr_in serverAddr, clientAddr;
+    socklen_t serverAddrLen, clientAddrLen;
+    
 public:
-    Socket(const char* address, const char* port); 
-    Socket(const char* port);                     
+    Socket(const char* ip, const char* port);
     ~Socket();
-
     void sendToServer(const char* message);
-    void receiveFromServer(char* buffer);
-    void listen(char* buffer);
+    void receiveFromServer(char* recvbuf);
+    void listen(char* port);
+
+    virtual ~Socket() = default;
+
+    // Méthodes client
+    virtual void sendToServer(const std::string &message) = 0;
+    virtual void receiveFromServer(std::string &message) = 0;
+
+    // Méthodes serveur
+    virtual void listen(std::string &message) = 0;
 };

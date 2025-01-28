@@ -7,6 +7,8 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netdb.h>
+#include <iostream>
+
 
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "5555"
