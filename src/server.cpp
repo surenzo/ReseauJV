@@ -1,18 +1,19 @@
-#include "Socket.h"
+
 #include <iostream>
+#include <Socket.h>
 
-int main() {
+
+int  main() {
     try {
-        Socket server("5555");
+        Socket serverSocket("5555");
 
-        char message[DEFAULT_BUFLEN];
-        while (true) {
-            server.listen(message);
-            std::cout << "Client said: " << message << "\n";
-        }
-    } catch (const std::exception &e) {
-        std::cerr << e.what() << "\n";
+        char message[512];
+        serverSocket.listen(message);
+
+    }catch(const std::exception& e) {
+        std::cout << e.what() << std::endl;
         return 1;
     }
     return 0;
+
 }

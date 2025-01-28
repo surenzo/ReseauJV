@@ -1,18 +1,18 @@
 
-#include "Socket.h"
 #include <iostream>
+#include <Socket.h>
 
-int main() {
+int main(int argc, char **argv)
+{
     try {
-        Socket client("127.0.0.1", "5555");
-        client.sendToServer("Hello Server");
+        Socket clientSocket("127.0.0.1","5555");
+        clientSocket.sendToServer("Hello world");
 
-        char response[DEFAULT_BUFLEN];
-        client.receiveFromServer(response);
+        char message[512];
+        clientSocket.receiveFromServer(message);
 
-        std::cout << "Server replied: " << response << "\n";
-    } catch (const std::exception &e) {
-        std::cerr << e.what() << "\n";
+    }catch(const std::exception& e) {
+        std::cout << e.what() << std::endl;
         return 1;
     }
     return 0;

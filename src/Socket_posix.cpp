@@ -1,120 +1,119 @@
 #include "Socket.h"
 #include <stdexcept>
 #include <cstring>
-#include <iostream>
 #include <unistd.h>
-#include <arpa/inet.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <netdb.h>
 
 #define DEFAULT_BUFLEN 512
+#define DEFAULT_PORT "5555"
 
-class SocketPosix : public Socket {
-public:
-    // Constructeur pour le client
-    SocketPosix(const char *ip, const char *port);
+Socket::Socket(const char *ip, const char *port) {
+    struct addrinfo hints, *result;
+    int iResult;
 
-    // Constructeur pour le serveur
-    SocketPosix(const char *port);
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_protocol = IPPROTO_UDP;
 
-    // Destructeur
-    ~SocketPosix();
-
-    // Méthodes spécifiques à POSIX
-    void sendToServer(const std::string &message) override;
-    void receiveFromServer(std::string &message) override;
-    void listen(std::string &message) override;
-
-private:
-    int socketFD = -1;
-    sockaddr_in serverAddr{};
-};
-
-// ** Constructeur pour le client **
-SocketPosix::SocketPosix(const char *ip, const char *port) {
-    // Création du socket
-    socketFD = socket(AF_INET, SOCK_DGRAM, 0);
-    if (socketFD < 0) {
-        throw std::runtime_error("Erreur lors de la création du socket");
+    iResult = getaddrinfo(ip, port, &hints, &result);
+    if (iResult != 0) {
+        throw std::runtime_error("getaddrinfo failed: " + std::string(gai_strerror(iResult)));
     }
 
-    // Configuration de l'adresse du serveur
-    memset(&serverAddr, 0, sizeof(serverAddr));
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(std::stoi(port));
-
-    if (inet_pton(AF_INET, ip, &serverAddr.sin_addr) <= 0) {
-        close(socketFD);
-        throw std::runtime_error("Adresse IP invalide ou inaccessible");
+    SendSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+    if (SendSocket == -1) {
+        freeaddrinfo(result);
+        throw std::runtime_error("socket failed: " + std::string(strerror(errno)));
     }
 }
 
-// ** Constructeur pour le serveur **
-SocketPosix::SocketPosix(const char *port) {
-    // Création du socket
-    socketFD = socket(AF_INET, SOCK_DGRAM, 0);
-    if (socketFD < 0) {
-        throw std::runtime_error("Erreur lors de la création du socket");
-    }
-
-    // Configuration de l'adresse locale
-    memset(&serverAddr, 0, sizeof(serverAddr));
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(std::stoi(port));
-
-    // Liaison de l'adresse au socket
-    if (bind(socketFD, (sockaddr *)&serverAddr, sizeof(serverAddr)) < 0) {
-        close(socketFD);
-        throw std::runtime_error("Erreur lors de la liaison (bind) du socket");
+void Socket::sendToServer(const char* message) {
+    struct addrinfo *result;
+    int iResult = sendto(SendSocket, message, strlen(message), 0, result->ai_addr, result->ai_addrlen);
+    if (iResult == -1) {
+        throw std::runtime_error("sendto failed: " + std::string(strerror(errno)));
     }
 }
 
-// ** Destructeur **
-SocketPosix::~SocketPosix() {
-    if (socketFD >= 0) {
-        close(socketFD);
+void Socket::receiveFromServer(char* message) {
+    char recvbuf[DEFAULT_BUFLEN];
+    int recvbuflen = DEFAULT_BUFLEN;
+
+    struct sockaddr_storage sender_addr;
+    socklen_t sender_addr_size = sizeof(sender_addr);
+    int iResult = recvfrom(SendSocket, recvbuf, recvbuflen, 0, (struct sockaddr *)&sender_addr, &sender_addr_size);
+    if (iResult > 0) {
+        recvbuf[iResult] = '\0';
+        std::strcpy(message, recvbuf);
+    } else if (iResult == 0) {
+        std::cout << "Connection closed\n";
+    } else {
+        throw std::runtime_error("recvfrom failed: " + std::string(strerror(errno)));
     }
 }
 
-// ** Envoi d'un message au serveur **
-void SocketPosix::sendToServer(const std::string &message) {
-    ssize_t bytesSent = sendto(socketFD, message.c_str(), message.size(), 0, (sockaddr *)&serverAddr, sizeof(serverAddr));
-    if (bytesSent < 0) {
-        throw std::runtime_error("Erreur lors de l'envoi du message");
-    }
-}
+Socket::Socket(const char *port) {
+    struct addrinfo hints, *result;
+    int iResult;
 
-// ** Réception d'un message du serveur **
-void SocketPosix::receiveFromServer(std::string &message) {
-    char buffer[DEFAULT_BUFLEN] = {0};
-    socklen_t addrLen = sizeof(serverAddr);
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_protocol = IPPROTO_UDP;
+    hints.ai_flags = AI_PASSIVE;
 
-    ssize_t bytesReceived = recvfrom(socketFD, buffer, DEFAULT_BUFLEN, 0, (sockaddr *)&serverAddr, &addrLen);
-    if (bytesReceived < 0) {
-        throw std::runtime_error("Erreur lors de la réception du message");
+    iResult = getaddrinfo(NULL, port, &hints, &result);
+    if (iResult != 0) {
+        throw std::runtime_error("getaddrinfo failed: " + std::string(gai_strerror(iResult)));
     }
 
-    message = std::string(buffer, bytesReceived);
+    ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+    if (ListenSocket == -1) {
+        freeaddrinfo(result);
+        throw std::runtime_error("socket failed: " + std::string(strerror(errno)));
+    }
+
+    iResult = bind(ListenSocket, result->ai_addr, result->ai_addrlen);
+    if (iResult == -1) {
+        freeaddrinfo(result);
+        throw std::runtime_error("bind failed: " + std::string(strerror(errno)));
+    }
+
+    freeaddrinfo(result);
 }
 
-// ** Écoute (mode serveur) pour recevoir un message d'un client **
-void SocketPosix::listen(std::string &message) {
-    char buffer[DEFAULT_BUFLEN] = {0};
-    sockaddr_in clientAddr{};
+void Socket::listen(char* message) {
+    char recvbuf[DEFAULT_BUFLEN];
+    int recvbuflen = DEFAULT_BUFLEN;
+
+    struct sockaddr_in clientAddr;
     socklen_t clientAddrLen = sizeof(clientAddr);
 
-    // Réception du message du client
-    ssize_t bytesReceived = recvfrom(socketFD, buffer, DEFAULT_BUFLEN, 0, (sockaddr *)&clientAddr, &clientAddrLen);
-    if (bytesReceived < 0) {
-        throw std::runtime_error("Erreur lors de la réception du message client");
+    while (1) {
+        memset(recvbuf, 0, sizeof(recvbuf));
+
+        int iResult = recvfrom(ListenSocket, recvbuf, recvbuflen, 0, (struct sockaddr *)&clientAddr, &clientAddrLen);
+        if (iResult == -1) {
+            throw std::runtime_error("recvfrom failed: " + std::string(strerror(errno)));
+        }
+
+        std::cout << "Received message: " << recvbuf << "\n";
+
+        const char* response = "Message received by server!";
+        sendto(ListenSocket, response, strlen(response), 0, (struct sockaddr *)&clientAddr, clientAddrLen);
     }
+}
 
-    message = std::string(buffer, bytesReceived);
-
-    // Réponse au client
-    const char *ackMessage = "Message reçu avec succès";
-    ssize_t bytesSent = sendto(socketFD, ackMessage, strlen(ackMessage), 0, (sockaddr *)&clientAddr, clientAddrLen);
-    if (bytesSent < 0) {
-        throw std::runtime_error("Erreur lors de l'envoi de l'accusé de réception");
+Socket::~Socket() {
+    if (SendSocket != -1) {
+        close(SendSocket);
+    }
+    if (ListenSocket != -1) {
+        close(ListenSocket);
     }
 }
