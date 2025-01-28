@@ -39,8 +39,7 @@ private:
     socklen_t sender_addr_size;      // Taille de la structure de l'expéditeur
     socklen_t clientAddrLen;         // Taille de la structure du client
 
-    // Constantes pour les ports
-    static const char* DEFAULT_PORT; // Port par défaut
+
 };
 
 #endif 
