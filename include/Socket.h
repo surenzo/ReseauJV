@@ -38,7 +38,7 @@ private:
     socklen_t result_size;           // Taille de la structure sockaddr
     socklen_t sender_addr_size;      // Taille de la structure de l'expéditeur
     socklen_t clientAddrLen;         // Taille de la structure du client
-
+    
 
 };
 
