@@ -184,6 +184,9 @@ Socket::~Socket() {
     if (ListenSocket != INVALID_SOCKET) {
         closesocket(ListenSocket);
     }
-    freeaddrinfo(result);
-    WSACleanup();
+    WSACleanup(); // Nettoyage global
+}
+
+void Socket::cleanup() {
+    if (result) freeaddrinfo(result);
 }
