@@ -14,35 +14,29 @@
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment (lib, "AdvApi32.lib")
 
-
 #define DEFAULT_BUFLEN 512
-#define DEFAULT_PORT "5555" // a mettre dans le client.cpp
+#define DEFAULT_PORT "5555"
 
 WSADATA wsaData;
 int iResult;
 
-
-struct addrinfo *result = NULL,
-                hints;
-
+struct addrinfo *result = NULL, hints;
 
 SOCKET SendSocket = INVALID_SOCKET;
 SOCKET ListenSocket = INVALID_SOCKET;
 
-Socket::Socket(const char *ip,const char *port) {
-
+Socket::Socket(const char *ip, const char *port) {
     // Initialize Winsock
-    iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+    iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (iResult != 0) {
         throw std::runtime_error("WSAStartup failed with error: " + std::to_string(iResult));
     }
-
 
     // Resolve the server address and port
     ZeroMemory(&hints, sizeof(hints));
     hints.ai_family = AF_UNSPEC;        // Allow IPv4 or IPv6
     hints.ai_socktype = SOCK_DGRAM;    // Use UDP
-    hints.ai_protocol = IPPROTO_UDP;  // UDP protocol
+    hints.ai_protocol = IPPROTO_UDP;   // UDP protocol
 
     iResult = getaddrinfo(ip, port, &hints, &result);
     if (iResult != 0) {
@@ -57,15 +51,11 @@ Socket::Socket(const char *ip,const char *port) {
         WSACleanup();
         throw std::runtime_error("socket failed with error: " + std::to_string(WSAGetLastError()));
     }
-
 }
 
-
-
-void Socket::sendToServer(const char* message) {
-    // Send a datagram to the server
+void Socket::sendToServer(const char *message) {
     iResult = sendto(SendSocket, message, (int)strlen(message), 0, result->ai_addr, (int)result->ai_addrlen);
-    if (iResult == SOCKET_ERROR) {
+    if (SOCKET_ERROR_CHECK(iResult)) {
         closesocket(SendSocket);
         freeaddrinfo(result);
         WSACleanup();
@@ -74,8 +64,8 @@ void Socket::sendToServer(const char* message) {
     printf("Bytes Sent: %d\n", iResult);
     printf("Sent message: %s\n", message);
 }
-void Socket::receiveFromServer(char* message) {
 
+void Socket::receiveFromServer(char *message) {
     char recvbuf[DEFAULT_BUFLEN];
     int recvbuflen = DEFAULT_BUFLEN;
 
@@ -93,32 +83,23 @@ void Socket::receiveFromServer(char* message) {
     }
 }
 
-
-
-
-
 Socket::Socket(const char *port) {
-
-    // Initialize Winsock
-    iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+    iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (iResult != 0) {
         throw std::runtime_error("WSAStartup failed with error: " + std::to_string(iResult));
     }
 
-
-    // Configurer les informations d'écoute (adresse et port)
     ZeroMemory(&hints, sizeof(hints));
-    hints.ai_family = AF_INET;        // IPv4
-    hints.ai_socktype = SOCK_DGRAM;  // UDP
-    hints.ai_protocol = IPPROTO_UDP; // Protocole UDP
-    hints.ai_flags = AI_PASSIVE;     // Pour l'écoute (bind)
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_protocol = IPPROTO_UDP;
+    hints.ai_flags = AI_PASSIVE;
 
     iResult = getaddrinfo(NULL, DEFAULT_PORT, &hints, &result);
     if (iResult != 0) {
         WSACleanup();
     }
 
-    // Créer le socket pour le serveur
     ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
     if (ListenSocket == INVALID_SOCKET) {
         freeaddrinfo(result);
@@ -126,7 +107,6 @@ Socket::Socket(const char *port) {
         throw std::runtime_error("socket failed with error: " + std::to_string(WSAGetLastError()));
     }
 
-    // Associer le socket à une adresse et un port
     iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
     if (iResult == SOCKET_ERROR) {
         freeaddrinfo(result);
@@ -136,38 +116,29 @@ Socket::Socket(const char *port) {
     }
 
     freeaddrinfo(result);
-
-
 }
 
-void Socket::listen(char* message) {
-
+void Socket::listen(char *message) {
     char recvbuf[DEFAULT_BUFLEN];
     int recvbuflen = DEFAULT_BUFLEN;
     struct sockaddr_in clientAddr;
     int clientAddrLen = sizeof(clientAddr);
 
-    // Boucle principale pour recevoir et traiter les messages
     printf("Server is waiting for data on port %s...\n", DEFAULT_PORT);
     while (1) {
-        printf("Waiting to receive data...\n");
+        ZeroMemory(&clientAddr, clientAddrLen);
+        ZeroMemory(recvbuf, DEFAULT_BUFLEN);
 
-        ZeroMemory(&clientAddr, clientAddrLen); // Initialiser la structure client
-        ZeroMemory(recvbuf, DEFAULT_BUFLEN);    // Réinitialiser le buffer
-
-        // Recevoir des données depuis un client
-        iResult = recvfrom(ListenSocket, recvbuf, recvbuflen, 0, (struct sockaddr*)&clientAddr, &clientAddrLen);
+        iResult = recvfrom(ListenSocket, recvbuf, recvbuflen, 0, (struct sockaddr *)&clientAddr, &clientAddrLen);
         if (iResult == SOCKET_ERROR) {
             printf("recvfrom failed with error: %d\n", WSAGetLastError());
             break;
         }
 
-        // Afficher les données reçues
         printf("Received %d bytes from client: %s\n", iResult, recvbuf);
 
-        // Envoyer une réponse au client
         const char *response = "Message received by server!";
-        iResult = sendto(ListenSocket, response, (int)strlen(response), 0, (struct sockaddr*)&clientAddr, clientAddrLen);
+        iResult = sendto(ListenSocket, response, (int)strlen(response), 0, (struct sockaddr *)&clientAddr, clientAddrLen);
         if (iResult == SOCKET_ERROR) {
             printf("sendto failed with error: %d\n", WSAGetLastError());
             break;

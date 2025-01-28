@@ -2,14 +2,28 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
-#include <netinet/in.h>
-#include <arpa/inet.h>
+
+
+#ifdef _WIN32
+    // Windows-specific includes
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+    #define SOCKET_ERROR_CHECK(result) (result == SOCKET_ERROR)
+#else
+    // Unix/Linux specific includes
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #define SOCKET_ERROR_CHECK(result) (result < 0)
+#endif
+
 
 class Socket {
 public:
     // Constructeur et destructeur
     Socket(const char* ip, const char* port);
     ~Socket();
+
+    static const char* DEFAULT_PORT;
 
     // Méthodes de communication
     void sendToServer(const char* message);
