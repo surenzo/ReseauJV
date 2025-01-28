@@ -1,13 +1,19 @@
-//
-// Created by super on 26/01/2025.
-//
-
-#include "server.h"
 
 #include <iostream>
+#include <Socket.h>
 
-int main()
-{
-    std::cout << "Obi-wan Kenobi !";
+
+int  main() {
+    try {
+        Socket serverSocket("5555");
+
+        char message[512];
+        serverSocket.listen(message);
+
+    }catch(const std::exception& e) {
+        std::cout << e.what() << std::endl;
+        return 1;
+    }
     return 0;
+
 }
