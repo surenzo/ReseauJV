@@ -1,18 +1,24 @@
-//
-// Created by super on 28/01/2025.
-//
+#pragma once
 
-#ifndef SOCKET_H
-#define SOCKET_H
+#include <string>
 
 class Socket {
-    public:
-        Socket(const char* ip, const char* port);
-        ~Socket();
-        Socket(const char*port); // server version
-        void sendToServer(const char* message);
-        void receiveFromServer(char* message);
-        void listen(char* message);
-};
+private:
+    int sendSocket;              
+    int listenSocket;             
+    struct sockaddr serverAddr;   
+    socklen_t serverAddrLen;      
 
-#endif //SOCKET_H
+    struct sockaddr clientAddr;   
+    socklen_t clientAddrLen;     
+
+    static constexpr int DEFAULT_BUFLEN = 512; 
+public:
+    Socket(const char* address, const char* port); 
+    Socket(const char* port);                     
+    ~Socket();
+
+    void sendToServer(const char* message);
+    void receiveFromServer(char* buffer);
+    void listen(char* buffer);
+};
