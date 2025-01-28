@@ -93,6 +93,7 @@ void Socket::startListening() {
         perror("Error binding ListenSocket");
         return;
     }
+    const char* Socket::DEFAULT_PORT = "5555";
 
     printf("Server is waiting for data on port %s...\n", DEFAULT_PORT);
     ::listen(ListenSocket, 10);  // Commence à écouter sur le socket
