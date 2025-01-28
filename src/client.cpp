@@ -2,6 +2,8 @@
 #include <iostream>
 #include <Socket.h>
 
+#define DEFAULT_PORT "5555"  
+
 int main(int argc, char **argv)
 {
     try {
