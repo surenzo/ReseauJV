@@ -7,9 +7,6 @@
 #include "Socket.h"
 #include <cstdlib>
 
-    
-const char* Socket::DEFAULT_PORT = "5555";
-
 Socket::Socket(const char* ip, const char* port) {
     // Initialisation des sockets
     SendSocket = socket(AF_INET, SOCK_DGRAM, 0);  // Création du socket pour l'envoi
@@ -96,6 +93,7 @@ void Socket::startListening() {
         perror("Error binding ListenSocket");
         return;
     }
+    const char* Socket::DEFAULT_PORT = "5555";
 
     printf("Server is waiting for data on port %s...\n", DEFAULT_PORT);
     ::listen(ListenSocket, 10);  // Commence à écouter sur le socket
