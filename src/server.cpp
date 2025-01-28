@@ -5,7 +5,7 @@
 
 int  main() {
     try {
-        Socket serverSocket("5555");
+        Socket serverSocket("127.0.0.1", "5555");
 
         char message[512];
         serverSocket.listen(message);
