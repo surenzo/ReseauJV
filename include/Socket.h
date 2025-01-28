@@ -1,8 +1,4 @@
 
-
-#endif //SOCKET_H
-
-
 #ifndef SOCKET_H
 #define SOCKET_H
 
@@ -45,4 +41,4 @@ private:
     static const char* DEFAULT_PORT; // Port par défaut
 };
 
-#endif // SOCKET_H
+#endif 

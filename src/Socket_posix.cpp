@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include "Socket.h"
+#include <cstdlib>
 
 Socket::Socket(const char* ip, const char* port) {
     // Initialisation des sockets
@@ -94,5 +95,5 @@ void Socket::startListening() {
     }
 
     printf("Server is waiting for data on port %s...\n", DEFAULT_PORT);
-    listen(ListenSocket, 10);  // Commence à écouter sur le socket
+    ::listen(ListenSocket, 10);  // Commence à écouter sur le socket
 }
