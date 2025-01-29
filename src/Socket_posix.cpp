@@ -49,8 +49,8 @@ void Socket::sendToServer(const char* message) {
     if (bytesSent < 0) {
         throw std::runtime_error("send failed: " + std::string(strerror(errno)));
     }
-    std::cout << "Bytes sent: " << bytesSent << std::endl;
-    std::cout << "Sent message: " << message << std::endl;
+    //std::cout << "Bytes sent: " << bytesSent << std::endl;
+    //std::cout << "Sent message: " << message << std::endl;
 }
 
 void Socket::receiveFromServer(char* message) {
@@ -61,8 +61,9 @@ void Socket::receiveFromServer(char* message) {
     }
 
     recvbuf[bytesReceived] = '\0'; // Null-terminate the received data
-    std::cout << "Bytes received: " << bytesReceived << std::endl;
-    std::cout << "Message received: " << recvbuf << std::endl;
+    strcpy(message, recvbuf);
+    //std::cout << "Bytes received: " << bytesReceived << std::endl;
+    //std::cout << "Message received: " << recvbuf << std::endl;
 }
 
 Socket::Socket(const char *port) {
@@ -90,7 +91,7 @@ void Socket::listen(char* message) {
     struct sockaddr_in clientAddr;
     socklen_t clientAddrLen = sizeof(clientAddr);
 
-    std::cout << "Server is waiting for data on port " << DEFAULT_PORT << "...\n";
+    //std::cout << "Server is waiting for data on port " << DEFAULT_PORT << "...\n";
     while (true) {
         memset(recvbuf, 0, DEFAULT_BUFLEN);
 
@@ -101,18 +102,18 @@ void Socket::listen(char* message) {
             break;
         }
 
-        std::cout << "Received " << bytesReceived << " bytes from client: " << recvbuf << std::endl;
+        //std::cout << "Received " << bytesReceived << " bytes from client: " << recvbuf << std::endl;
 
         // Répondre au client
-        const char *response = "Message received by server!";
-        ssize_t bytesSent = sendto(ListenSocket, response, strlen(response), 0, 
+        //const char *response = "Message received by server!";
+        ssize_t bytesSent = sendto(ListenSocket, recvbuf, sizeof(recvbuf), 0,
                                    (struct sockaddr*)&clientAddr, clientAddrLen);
         if (bytesSent < 0) {
             std::cerr << "sendto failed: " << strerror(errno) << std::endl;
             break;
         }
 
-        std::cout << "Response sent to client.\n";
+        //std::cout << "Response sent to client.\n";
     }
 }
 
