@@ -71,8 +71,8 @@ void Socket::sendToServer(const char* message) {
         WSACleanup();
         throw std::runtime_error("sendto failed with error: " + std::to_string(WSAGetLastError()));
     }
-    printf("Bytes Sent: %d\n", iResult);
-    printf("Sent message: %s\n", message);
+    //printf("Bytes Sent: %d\n", iResult);
+    //printf("Sent message: %s\n", message);
 }
 void Socket::receiveFromServer(char* message) {
 
@@ -84,8 +84,9 @@ void Socket::receiveFromServer(char* message) {
     iResult = recvfrom(SendSocket, recvbuf, recvbuflen, 0, (struct sockaddr *)&sender_addr, &sender_addr_size);
     if (iResult > 0) {
         recvbuf[iResult] = '\0'; // Null-terminate the received data
-        printf("Bytes received: %d\n", iResult);
-        printf("Message received: %s\n", recvbuf);
+        //printf("Bytes received: %d\n", iResult);
+        //printf("Message received: %s\n", recvbuf);
+        strcpy(message, recvbuf);
     } else if (iResult == 0) {
         printf("Connection closed\n");
     } else {
@@ -148,9 +149,9 @@ void Socket::listen(char* message) {
     int clientAddrLen = sizeof(clientAddr);
 
     // Boucle principale pour recevoir et traiter les messages
-    printf("Server is waiting for data on port %s...\n", DEFAULT_PORT);
+    //printf("Server is waiting for data on port %s...\n", DEFAULT_PORT);
     while (1) {
-        printf("Waiting to receive data...\n");
+        //printf("Waiting to receive data...\n");
 
         ZeroMemory(&clientAddr, clientAddrLen); // Initialiser la structure client
         ZeroMemory(recvbuf, DEFAULT_BUFLEN);    // Réinitialiser le buffer
@@ -163,17 +164,17 @@ void Socket::listen(char* message) {
         }
 
         // Afficher les données reçues
-        printf("Received %d bytes from client: %s\n", iResult, recvbuf);
+        //printf("Received %d bytes from client: %s\n", iResult, recvbuf);
 
         // Envoyer une réponse au client
         const char *response = "Message received by server!";
-        iResult = sendto(ListenSocket, response, (int)strlen(response), 0, (struct sockaddr*)&clientAddr, clientAddrLen);
+        iResult = sendto(ListenSocket, recvbuf, recvbuflen, 0, (struct sockaddr*)&clientAddr, clientAddrLen);
         if (iResult == SOCKET_ERROR) {
             printf("sendto failed with error: %d\n", WSAGetLastError());
             break;
         }
 
-        printf("Response sent to client.\n");
+        //printf("Response sent to client.\n");
     }
 }
 
