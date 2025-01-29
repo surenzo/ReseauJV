@@ -13,6 +13,10 @@ class Socket {
         void sendToServer(const char* message);
         void receiveFromServer(char* message);
         void listen(char* message);
+
+    private:
+        int SendSocket;     // Déclare SendSocket pour l'envoi
+        int ListenSocket;
 };
 
 #endif //SOCKET_H
